@@ -20,11 +20,11 @@ import org.jetbrains.plugins.cucumber.steps.AbstractStepDefinition
 import com.github.nikolaymatrosov.cucumbergo.steps.StepDefinitionCreator as GoStepDefinitionCreator
 
 class CucumberExtension : AbstractCucumberExtension() {
-    override fun isStepLikeFile(child: PsiElement, parent: PsiElement): Boolean {
+    override fun isStepLikeFile(child: PsiElement): Boolean {
         return child is GoFile
     }
 
-    override fun isWritableStepLikeFile(child: PsiElement, parent: PsiElement): Boolean {
+    override fun isWritableStepLikeFile(child: PsiElement): Boolean {
         return (child as? GoFile)?.containingFile?.virtualFile?.isWritable ?: false
     }
 
@@ -66,12 +66,12 @@ class CucumberExtension : AbstractCucumberExtension() {
 
     override fun getStepDefinitionContainers(featureFile: GherkinFile): Collection<PsiFile> {
         val module = ModuleUtilCore.findModuleForPsiElement(featureFile)
-        val steps = module?.let {
-            loadStepsFor(featureFile, it)
+        val steps = module?.let { mod ->
+            loadStepsFor(featureFile, mod)
         }
         val psiFiles = steps
-            ?.map { it.element?.containingFile }
-            ?.filter { isWritableStepLikeFile(it!!, it.parent!!) }
+            ?.map { step -> step.element?.containingFile }
+            ?.filter { file -> isWritableStepLikeFile(file!!) }
             ?.filterNotNull()
             ?: emptyList()
         return psiFiles
